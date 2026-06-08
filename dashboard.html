@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JobTrack — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Progress / Funnel ── */
+    .progress-section { margin-bottom: 14px; }
+    .progress-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+    .progress-name { font-size:12.5px; color:var(--text2); font-weight:500; }
+    .progress-count { font-size:12px; font-weight:700; color:var(--burgundy); }
+
+    /* ── Salary box ── */
+    .salary-box { background:linear-gradient(135deg,var(--burgundy),var(--rose)); border-radius:var(--radius-md); padding:16px 18px; color:#fff; margin-bottom:12px; }
+    .salary-label { font-size:10.5px; opacity:.75; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+    .salary-val { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; margin-top:2px; }
+    .salary-sub { font-size:11px; opacity:.7; margin-top:2px; }
+
+    /* ── Rate grid ── */
+    .rate-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .rate-item { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; text-align:center; }
+    .rate-num { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; color:var(--burgundy); }
+    .rate-label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.6px; margin-top:2px; }
+
+    /* ── Calendar tooltip ── */
+    .cal-tooltip { position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:var(--burgundy); color:#fff; font-size:11px; padding:4px 8px; border-radius:6px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .15s; z-index:10; }
+    .cal-day:hover .cal-tooltip { opacity:1; }
+
+    /* ── Day detail panel ── */
+    .day-detail { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); margin-top:12px; overflow:hidden; }
+    .day-detail-header { padding:10px 14px; background:var(--bg2); border-bottom:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text2); }
+    .day-detail-item { padding:9px 14px; border-bottom:1px solid var(--border); font-size:12.5px; display:flex; align-items:flex-start; gap:8px; }
+    .day-detail-item:last-child { border-bottom:none; }
+
+    /* ── Bar chart ── */
+    .bar-chart { display:flex; align-items:flex-end; gap:6px; height:100px; padding:0 4px; }
+    .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .bar-fill { width:100%; border-radius:5px 5px 0 0; transition:height .6s cubic-bezier(.22,1,.36,1); min-height:0; }
+    .bar-label { font-size:10px; color:var(--muted); font-weight:600; flex-shrink:0; }
+    .bar-val { font-size:10px; color:var(--burgundy); font-weight:700; height:14px; flex-shrink:0; }
+
+    /* ── kbd hint ── */
+    .kbd { display:inline-block; background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:11px; color:var(--muted); }
+
+    /* ── Global search ── */
+    .global-search-wrap { position:relative; flex:1; max-width:420px; }
+    .global-search-input { width:100%; padding:9px 16px 9px 38px; background:var(--surface); border:1.5px solid var(--border2); border-radius:30px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--text); outline:none; box-shadow:var(--shadow-sm); transition:border-color .2s,box-shadow .2s; }
+    .global-search-input:focus { border-color:var(--rose); box-shadow:0 0 0 3px rgba(180,68,70,.10); }
+    .global-search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
+    .search-dropdown { position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); z-index:100; overflow:hidden; max-height:400px; overflow-y:auto; display:none; }
+    .search-dropdown.open { display:block; animation:fadeSlide .15s ease; }
+    .sd-header { padding:8px 14px 6px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); border-bottom:1px solid var(--border); background:var(--bg2); }
+    .sd-item { display:flex; align-items:center; gap:12px; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
+    .sd-item:last-child { border-bottom:none; }
+    .sd-item:hover { background:var(--bg2); }
+    .sd-logo { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--linen),var(--bg2)); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--burgundy); flex-shrink:0; }
+    .sd-info { flex:1; min-width:0; }
+    .sd-company { font-size:13px; font-weight:600; color:var(--text); }
+    .sd-role { font-size:11.5px; color:var(--muted); margin-top:1px; }
+    .sd-right { text-align:right; flex-shrink:0; }
+    .sd-date { font-size:11px; color:var(--muted); }
+    .sd-empty { padding:24px 14px; text-align:center; color:var(--muted); font-size:13px; }
+    .sd-empty-icon { font-size:28px; margin-bottom:6px; opacity:.5; }
+    .hl { background:rgba(180,68,70,.12); color:var(--rose); border-radius:2px; font-weight:700; }
+
+    /* ── Calendar event types ── */
+    .cal-day .event-dots { display:flex; gap:2px; justify-content:center; margin-top:2px; flex-wrap:wrap; }
+    .cal-day .edot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .edot-apply   { background:#4A86C8; }
+    .edot-followup{ background:#C8883A; }
+    .edot-interview{ background:#9B6DB5; }
+    .edot-deadline{ background:#C84A4A; }
+
+    /* ── Calendar legend ── */
+    .cal-legend { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; padding:10px 14px; background:var(--bg2); border-radius:var(--radius-md); border:1px solid var(--border); }
+    .cal-legend-item { display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text2); }
+
+    /* ── Upcoming card items ── */
+    .upcoming-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .upcoming-item:last-child { border-bottom:none; }
+    .upcoming-date-badge { background:var(--accent-light); color:var(--rose); border-radius:var(--radius-sm); padding:4px 8px; font-size:11px; font-weight:700; white-space:nowrap; flex-shrink:0; border:1px solid rgba(180,68,70,.15); }
+    .upcoming-date-badge.overdue { background:rgba(200,74,74,.1); color:var(--s-rejected); border-color:rgba(200,74,74,.2); }
+    .upcoming-date-badge.today { background:rgba(61,168,112,.1); color:#3DA870; border-color:rgba(61,168,112,.2); }
+
+    /* ── Notes timeline ── */
+    .note-entry { display:flex; gap:10px; margin-bottom:12px; }
+    .note-dot { width:8px; height:8px; border-radius:50%; background:var(--rose); margin-top:5px; flex-shrink:0; }
+    .note-content { flex:1; background:var(--bg2); border-radius:var(--radius-sm); padding:8px 12px; font-size:12.5px; }
+    .note-date { font-size:11px; color:var(--muted); margin-top:3px; }
+
+    /* ── View tabs (calendar) ── */
+    .cal-view-tabs { display:flex; background:var(--bg2); border-radius:9px; padding:3px; border:1px solid var(--border); margin-bottom:14px; }
+    .cal-view-tab { padding:6px 14px; border-radius:7px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s; }
+    .cal-view-tab.active { background:var(--surface); color:var(--rose); box-shadow:var(--shadow-sm); }
+
+    /* ── Overdue badge ── */
+    .overdue-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:10.5px; font-weight:700; background:rgba(200,74,74,.1); color:var(--s-rejected); border:1px solid rgba(200,74,74,.2); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">💼</div>
+      <div class="logo-name">Job<em>Track</em></div>
+    </div>
+
+    <nav>
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+
+      <div class="nav-section-label">Applications</div>
+      <div class="nav-item" id="nav-all" onclick="showView('applications'); clearFilter()">
+        <span class="nav-icon">🗂️</span> All Applications
+        <span class="nav-badge" id="nav-count">0</span>
+      </div>
+      <div class="nav-item" onclick="showView('applications'); filterStatus('Applied')">
+        <span class="nav-icon">📤</span> Applied
+      </div>
+      <div class="nav-item" onclick="showView('applications'); filterStatus('Screening')">
+        <span class="nav-icon">🔍</span> Screening
+      </div>
+      <div class="nav-item" onclick="showView('applications'); filterStatus('Interview')">
+        <span class="nav-icon">🎙️</span> Interviews
+      </div>
+      <div class="nav-item" onclick="showView('applications'); filterStatus('Offer')">
+        <span class="nav-icon">🎉</span> Offers
+      </div>
+      <div class="nav-item" onclick="showView('applications'); filterStatus('Rejected')">
+        <span class="nav-icon">❌</span> Rejected
+      </div>
+
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item" id="nav-calendar" onclick="showView('calendar')">
+        <span class="nav-icon">📅</span> Calendar
+        <span class="nav-badge" id="nav-overdue" style="background:var(--s-rejected);display:none">0</span>
+      </div>
+      <div class="nav-item" id="nav-notes" onclick="showView('notes')">
+        <span class="nav-icon">📝</span> Notes & Log
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">Loading…</div>
+          <div class="user-email" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main" id="main-content">
+
+    <!-- =========== DASHBOARD =========== -->
+    <div id="view-dashboard">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-eyebrow">Overview</div>
+          <div class="page-title" id="dash-greeting">Good morning ✦</div>
+        </div>
+        <div class="topbar-actions" style="align-items:center;gap:10px">
+          <div class="global-search-wrap" id="global-search-wrap">
+            <span class="global-search-icon">🔍</span>
+            <input type="text" class="global-search-input" id="global-search" placeholder="Search company or role…" autocomplete="off" oninput="onGlobalSearch()" onfocus="onGlobalSearchFocus()"/>
+            <div class="search-dropdown" id="search-dropdown"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Application</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="color-bar" style="background:var(--s-applied)"></div>
+          <div class="stat-icon">📤</div>
+          <div class="stat-num" id="s-total">0</div>
+          <div class="stat-label">Total Applied</div>
+        </div>
+        <div class="stat-card">
+          <div class="color-bar" style="background:var(--s-interview)"></div>
+          <div class="stat-icon">🎙️</div>
+          <div class="stat-num" id="s-interview">0</div>
+          <div class="stat-label">Interviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="color-bar" style="background:var(--s-offer)"></div>
+          <div class="stat-icon">🎉</div>
+          <div class="stat-num" id="s-offer">0</div>
+          <div class="stat-label">Offers</div>
+          <div class="stat-sub" id="s-offer-rate"></div>
+        </div>
+        <div class="stat-card">
+          <div class="color-bar" style="background:var(--s-rejected)"></div>
+          <div class="stat-icon">❌</div>
+          <div class="stat-num" id="s-rejected">0</div>
+          <div class="stat-label">Rejected</div>
+        </div>
+        <div class="stat-card" style="cursor:pointer" onclick="showView('calendar')">
+          <div class="color-bar" style="background:var(--s-rejected)"></div>
+          <div class="stat-icon">⏰</div>
+          <div class="stat-num" id="s-overdue">0</div>
+          <div class="stat-label">Overdue Follow-ups</div>
+        </div>
+        <div class="stat-card">
+          <div class="color-bar" style="background:var(--rose)"></div>
+          <div class="stat-icon">📅</div>
+          <div class="stat-num" id="s-thisweek">0</div>
+          <div class="stat-label">This Week</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title">📈 Application Funnel</div>
+          <div id="funnel-bars"></div>
+          <div class="rate-grid">
+            <div class="rate-item"><div class="rate-num" id="rate-response">—</div><div class="rate-label">Response Rate</div></div>
+            <div class="rate-item"><div class="rate-num" id="rate-interview">—</div><div class="rate-label">Interview Rate</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📊 Weekly Activity</div>
+          <div class="bar-chart" id="weekly-chart"></div>
+          <div style="margin-top:16px">
+            <div class="salary-box">
+              <div class="salary-label">Salary Range (from applications)</div>
+              <div class="salary-val" id="salary-range">No data yet</div>
+              <div class="salary-sub" id="salary-note">Add salary info when logging applications</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⏰ Upcoming Follow-ups</div>
+          <div id="dash-upcoming"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🕐 Recent Applications</div>
+          <div id="recent-list"><div style="color:var(--muted);font-size:13px">No applications yet.</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏢 Job Types</div>
+          <div id="type-breakdown"></div>
+          <div class="card-title" style="margin-top:18px;font-size:16px">📍 Locations</div>
+          <div id="location-breakdown"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🌐 Application Sources</div>
+          <div id="source-breakdown"></div>
+          <div class="card-title" style="margin-top:18px;font-size:16px">⭐ Priority Split</div>
+          <div id="priority-breakdown"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== APPLICATIONS =========== -->
+    <div id="view-applications" style="display:none">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-eyebrow">My Applications</div>
+          <div class="page-title">Applications</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add New</button>
+        </div>
+      </div>
+
+      <div class="section page-section">
+        <div class="filters-bar">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search company or role…" oninput="renderTable()">
+          </div>
+          <select class="filter-select" id="filter-status" onchange="renderTable()">
+            <option value="">All Statuses</option>
+            <option>Applied</option><option>Screening</option><option>Interview</option>
+            <option>Offer</option><option>Rejected</option><option>Withdrawn</option>
+          </select>
+          <select class="filter-select" id="filter-priority" onchange="renderTable()">
+            <option value="">All Priority</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+          <select class="filter-select" id="filter-type" onchange="renderTable()">
+            <option value="">All Types</option>
+            <option>Full-time</option><option>Part-time</option><option>Contract</option>
+            <option>Internship</option><option>Remote</option><option>Hybrid</option>
+          </select>
+          <select class="filter-select" id="filter-source" onchange="renderTable()">
+            <option value="">All Sources</option>
+            <option>LinkedIn</option><option>JobStreet</option><option>Indeed</option>
+            <option>Company Website</option><option>Referral</option><option>Other</option>
+          </select>
+          <select class="filter-select" id="filter-sort" onchange="renderTable()">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="company">Company A-Z</option>
+            <option value="status">By Status</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Company & Role</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Salary</th>
+                <th>Applied</th>
+                <th>Follow-up Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;color:var(--muted)" id="table-count"></div>
+          <div style="font-size:12px;color:var(--muted)">Press <span class="kbd">N</span> to add · <span class="kbd">Esc</span> to close</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== CALENDAR =========== -->
+    <div id="view-calendar" style="display:none">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-eyebrow">Activity & Follow-ups</div>
+          <div class="page-title">Calendar</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)">‹ Prev</button>
+          <button class="btn btn-ghost btn-sm" onclick="goToday()">Today</button>
+          <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)">Next ›</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Application</button>
+        </div>
+      </div>
+
+      <div class="section page-section">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+          <div>
+            <div class="cal-legend">
+              <div class="cal-legend-item"><span class="edot edot-apply"></span> Application date</div>
+              <div class="cal-legend-item"><span class="edot edot-followup"></span> Follow-up due</div>
+              <div class="cal-legend-item"><span class="edot edot-interview"></span> Interview</div>
+              <div class="cal-legend-item"><span class="edot edot-deadline"></span> Overdue</div>
+            </div>
+
+            <div class="card">
+              <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+                <div class="cal-month-label" id="cal-month-label">June 2025</div>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+              </div>
+              <div class="calendar-grid" id="cal-grid"></div>
+
+              <div class="day-detail" id="day-detail" style="display:none">
+                <div class="day-detail-header" id="day-detail-header"></div>
+                <div id="day-detail-body"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div class="card-title">📅 This Month</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="rate-item"><div class="rate-num" id="cal-month-total">0</div><div class="rate-label">Applied</div></div>
+                <div class="rate-item"><div class="rate-num" id="cal-month-active">0</div><div class="rate-label">Active Days</div></div>
+                <div class="rate-item"><div class="rate-num" id="cal-month-followups">0</div><div class="rate-label">Follow-ups</div></div>
+                <div class="rate-item"><div class="rate-num" id="cal-month-interviews">0</div><div class="rate-label">Interviews</div></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">🔥 Streak</div>
+              <div style="text-align:center;padding:10px 0">
+                <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:600;color:var(--rose);line-height:1" id="streak-num">0</div>
+                <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-top:4px">Day Streak</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);text-align:center" id="streak-note"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">⏰ All Upcoming Follow-ups</div>
+              <div id="upcoming-list" style="font-size:13px;color:var(--muted)">No upcoming follow-ups.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== NOTES & LOG =========== -->
+    <div id="view-notes" style="display:none">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-eyebrow">Activity Log</div>
+          <div class="page-title">Notes & Log</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openAddNoteModal()">+ Add Note</button>
+        </div>
+      </div>
+      <div class="section page-section">
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:20px">
+          <div>
+            <div class="filters-bar" style="margin-bottom:14px">
+              <select class="filter-select" id="notes-filter-app" onchange="renderNotes()">
+                <option value="">All Applications</option>
+              </select>
+              <select class="filter-select" id="notes-filter-type" onchange="renderNotes()">
+                <option value="">All Types</option>
+                <option>Note</option><option>Interview</option><option>Email</option><option>Call</option><option>Offer</option><option>Rejection</option>
+              </select>
+            </div>
+            <div id="notes-list"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div class="card-title">📊 Activity Summary</div>
+              <div id="notes-summary"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== ADD/EDIT APPLICATION MODAL ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Application</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-divider">Company & Role</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company Name *</label>
+          <input type="text" id="f-company" placeholder="e.g. Petronas, CIMB, Maybank">
+        </div>
+        <div class="form-group">
+          <label>Job Title *</label>
+          <input type="text" id="f-title" placeholder="e.g. Frontend Developer">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Industry</label>
+          <input type="text" id="f-industry" placeholder="e.g. Oil & Gas, Banking, Tech">
+        </div>
+        <div class="form-group">
+          <label>Job Type</label>
+          <select id="f-type">
+            <option>Full-time</option><option>Part-time</option><option>Contract</option>
+            <option>Internship</option><option>Remote</option><option>Hybrid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-divider">Status & Priority</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status" onchange="onStatusChange()">
+            <option>Applied</option><option>Screening</option><option>Interview</option>
+            <option>Technical Test</option><option>Offer</option><option>Negotiating</option>
+            <option>Accepted</option><option>Rejected</option><option>Withdrawn</option><option>Ghosted</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="f-priority">
+            <option>High</option><option selected>Medium</option><option>Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-divider">Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="f-location" placeholder="e.g. Kuala Lumpur, Remote, Hybrid">
+        </div>
+        <div class="form-group">
+          <label>Date Applied</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Salary Range (RM)</label>
+          <input type="text" id="f-salary" placeholder="e.g. 4000 – 6000">
+        </div>
+        <div class="form-group">
+          <label>Application Source</label>
+          <select id="f-source">
+            <option value="">— Select —</option>
+            <option>LinkedIn</option><option>JobStreet</option><option>Indeed</option>
+            <option>Glassdoor</option><option>Company Website</option><option>Referral</option>
+            <option>Career Fair</option><option>Telegram</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Job Posting URL</label>
+        <input type="url" id="f-url" placeholder="https://…">
+      </div>
+
+      <!-- ── NEW: Role Details ── -->
+      <div class="form-divider">Role Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Experience Required</label>
+          <select id="f-experience">
+            <option value="">— Select —</option>
+            <option>Fresh Graduate</option>
+            <option>Less than 1 year</option>
+            <option>1 year</option>
+            <option>1–2 years</option>
+            <option>2–3 years</option>
+            <option>3–5 years</option>
+            <option>5–7 years</option>
+            <option>7–10 years</option>
+            <option>10+ years</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>📋 Job Requirements</label>
+        <textarea id="f-requirements" placeholder="e.g. Bachelor's in CS, proficient in React, 3 years experience, strong communication skills…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>🎯 Job Responsibilities</label>
+        <textarea id="f-responsibilities" placeholder="e.g. Build and maintain frontend features, collaborate with design team, participate in code reviews…" rows="3"></textarea>
+      </div>
+
+      <div class="form-divider">Follow-up & Reminders</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>📅 Follow-up Date</label>
+          <input type="date" id="f-followup-date" title="Pick a date — this will appear on your calendar">
+        </div>
+        <div class="form-group">
+          <label>Follow-up Type</label>
+          <select id="f-followup-type">
+            <option value="">— Select —</option>
+            <option>Send Follow-up Email</option>
+            <option>Interview</option>
+            <option>Technical Test</option>
+            <option>Submit Documents</option>
+            <option>Await Response</option>
+            <option>Call HR</option>
+            <option>Check Portal</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Follow-up Notes / Next Action</label>
+        <input type="text" id="f-next" placeholder="e.g. Email HR about interview schedule, Check job portal">
+      </div>
+
+      <div class="form-divider">Additional Notes</div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="Recruiter name, referral contact, interview feedback, cover letter details…" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveApp()">Save Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD NOTE MODAL ===== -->
+<div class="modal-overlay" id="note-modal-overlay" onclick="if(event.target===this)closeNoteModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">Add Note / Log Entry</div>
+      <button class="modal-close" onclick="closeNoteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Application</label>
+        <select id="note-app-id"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="note-type">
+            <option>Note</option><option>Interview</option><option>Email</option>
+            <option>Call</option><option>Offer</option><option>Rejection</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="note-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Content *</label>
+        <textarea id="note-content" placeholder="What happened? What was discussed? Any updates…" rows="4"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNoteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg">Saved!</span></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_pPDqaUDifAqVU9HhEdDGGrQpW-KBiY0",
+    authDomain: "jobapplicationwebsite-79dfb.firebaseapp.com",
+    databaseURL: "https://jobapplicationwebsite-79dfb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "jobapplicationwebsite-79dfb",
+    storageBucket: "jobapplicationwebsite-79dfb.firebasestorage.app",
+    messagingSenderId: "942444762404",
+    appId: "1:942444762404:web:2b011ae17f9715beeb4fb1",
+    measurementId: "G-CZJ33R0F7Z"
+  };
+</script>
+
+<script>
+// ==============================
+// FIREBASE
+// ==============================
+// firebaseConfig hardcoded above
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.database();
+
+// ==============================
+// STATE
+// ==============================
+let currentUser = null, appsRef = null, notesRef = null;
+let allApps = {}, allNotes = {};
+let editingId = null;
+let calYear, calMonth, calSelectedDate = null;
+const TODAY = new Date().toISOString().split('T')[0];
+
+// ==============================
+// AUTH INIT
+// ==============================
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  currentUser = user;
+
+  let name = user.email.split('@')[0];
+  try {
+    const snap = await db.ref(`users/${user.uid}/profile`).get();
+    const p = snap.val() || {};
+    name = p.name || name;
+  } catch(e) {}
+
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-email').textContent = user.email;
+  document.getElementById('user-avatar').textContent = name[0].toUpperCase();
+  const h = new Date().getHours();
+  const greet = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('dash-greeting').textContent = `${greet}, ${name.split(' ')[0]} ✦`;
+
+  appsRef = db.ref(`users/${user.uid}/applications`);
+  appsRef.on('value', snap => {
+    allApps = snap.val() || {};
+    refreshAll();
+  }, err => { toast('⚠️ DB error: ' + err.message, '⚠️'); });
+
+  notesRef = db.ref(`users/${user.uid}/notes`);
+  notesRef.on('value', snap => {
+    allNotes = snap.val() || {};
+    if (document.getElementById('view-notes').style.display !== 'none') renderNotes();
+  });
+
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+});
+
+// ==============================
+// VIEWS
+// ==============================
+const views = ['dashboard','applications','calendar','notes'];
+function showView(v) {
+  views.forEach(name => {
+    document.getElementById('view-' + name).style.display = name === v ? '' : 'none';
+    const el = document.getElementById('nav-' + name);
+    if (el) el.classList.toggle('active', name === v);
+  });
+  if (v === 'calendar')     renderCalendar();
+  if (v === 'dashboard')    renderDashboard();
+  if (v === 'applications') renderTable();
+  if (v === 'notes')        renderNotes();
+}
+
+function refreshAll() {
+  document.getElementById('nav-count').textContent = Object.keys(allApps).length;
+  updateOverdueBadge();
+  renderDashboard();
+  renderTable();
+  if (document.getElementById('view-calendar').style.display !== 'none') renderCalendar();
+}
+
+// ==============================
+// OVERDUE BADGE
+// ==============================
+function updateOverdueBadge() {
+  const overdue = Object.values(allApps).filter(a =>
+    a.followupDate && a.followupDate < TODAY &&
+    !['Rejected','Withdrawn','Accepted','Ghosted'].includes(a.status)
+  ).length;
+  const badge = document.getElementById('nav-overdue');
+  if (overdue > 0) { badge.textContent = overdue; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+  const el = document.getElementById('s-overdue');
+  if (el) el.textContent = overdue;
+}
+
+// ==============================
+// DASHBOARD
+// ==============================
+function renderDashboard() {
+  const apps = Object.values(allApps);
+  const total = apps.length;
+  const byStatus = s => apps.filter(a => a.status === s).length;
+
+  document.getElementById('s-total').textContent     = total;
+  document.getElementById('s-interview').textContent = byStatus('Interview');
+  document.getElementById('s-offer').textContent     = byStatus('Offer');
+  document.getElementById('s-rejected').textContent  = byStatus('Rejected');
+
+  const weekAgo = Date.now() - 7*86400000;
+  document.getElementById('s-thisweek').textContent = apps.filter(a => a.appliedAt > weekAgo).length;
+
+  const offerRate = total > 0 ? Math.round(byStatus('Offer')/total*100) : 0;
+  document.getElementById('s-offer-rate').textContent = total > 0 ? `${offerRate}% offer rate` : '';
+
+  const responded = apps.filter(a => ['Screening','Interview','Technical Test','Offer','Negotiating','Accepted','Rejected'].includes(a.status)).length;
+  document.getElementById('rate-response').textContent = total > 0 ? `${Math.round(responded/total*100)}%` : '—';
+  document.getElementById('rate-interview').textContent = total > 0 ? `${Math.round(byStatus('Interview')/total*100)}%` : '—';
+
+  // Funnel
+  const funnelData = [
+    { label:'Applied',        color:'var(--s-applied)',   count:byStatus('Applied') },
+    { label:'Screening',      color:'var(--s-screening)', count:byStatus('Screening') },
+    { label:'Interview',      color:'var(--s-interview)', count:byStatus('Interview') },
+    { label:'Technical Test', color:'#E0A020',            count:byStatus('Technical Test') },
+    { label:'Offer',          color:'var(--s-offer)',     count:byStatus('Offer') },
+    { label:'Rejected',       color:'var(--s-rejected)',  count:byStatus('Rejected') },
+    { label:'Ghosted',        color:'var(--s-withdrawn)', count:byStatus('Ghosted') },
+  ];
+  const maxC = Math.max(...funnelData.map(d=>d.count), 1);
+  document.getElementById('funnel-bars').innerHTML = funnelData.map(d => `
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-name" style="display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${d.color};display:inline-block"></span>${d.label}
+        </span>
+        <span class="progress-count">${d.count}</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${total>0?(d.count/maxC*100):0}%;background:${d.color}"></div>
+      </div>
+    </div>`).join('');
+
+  renderWeeklyChart();
+
+  // Salary
+  const salaries = apps.map(a => a.salary ? parseSalary(a.salary) : null).filter(Boolean);
+  if (salaries.length) {
+    const mn = Math.min(...salaries.map(s=>s.min));
+    const mx = Math.max(...salaries.map(s=>s.max));
+    document.getElementById('salary-range').textContent = `RM ${mn.toLocaleString()} – ${mx.toLocaleString()}`;
+    document.getElementById('salary-note').textContent = `Based on ${salaries.length} application${salaries.length>1?'s':''} with salary info`;
+  }
+
+  // Upcoming follow-ups (dashboard)
+  const upcoming = getUpcomingFollowups(5);
+  const dashUp = document.getElementById('dash-upcoming');
+  dashUp.innerHTML = upcoming.length ? upcoming.map(a => {
+    const diff = dateDiff(a.followupDate, TODAY);
+    const cls  = diff < 0 ? 'overdue' : diff === 0 ? 'today' : '';
+    const label = diff < 0 ? `${Math.abs(diff)}d overdue` : diff === 0 ? 'Today' : `in ${diff}d`;
+    return `<div class="upcoming-item">
+      <span class="upcoming-date-badge ${cls}">${label}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${esc(a.company)}</div>
+        <div style="font-size:12px;color:var(--muted)">${esc(a.followupType||a.nextStep||'Follow-up')}</div>
+        <div style="font-size:11px;color:var(--muted)">${a.followupDate}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 8px" onclick="editApp('${a.id}')">Edit</button>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:13px">No upcoming follow-ups 🎉</div>';
+
+  // Recent
+  const sorted = [...apps].sort((a,b)=>(b.appliedAt||0)-(a.appliedAt||0)).slice(0,5);
+  document.getElementById('recent-list').innerHTML = sorted.length ? sorted.map(a => `
+    <div class="recent-item">
+      <div class="recent-logo">${(a.company||'?')[0].toUpperCase()}</div>
+      <div class="recent-info">
+        <div class="recent-name">${esc(a.company||'—')}</div>
+        <div class="recent-role">${esc(a.title||'—')}</div>
+      </div>
+      <span class="status-badge status-${slugStatus(a.status)}" style="font-size:11px">${a.status||'Applied'}</span>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px">No applications yet.</div>';
+
+  // Types
+  renderBreakdown('type-breakdown', apps, 'type', total);
+  // Locations
+  const locs = {}; apps.forEach(a => { if(a.location) locs[a.location]=(locs[a.location]||0)+1; });
+  document.getElementById('location-breakdown').innerHTML = Object.entries(locs).length
+    ? Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,c])=>`
+        <div class="insight-row"><span class="insight-label">📍 ${esc(l)}</span><span class="insight-val">${c}</span></div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px">No data yet.</div>';
+
+  // Sources
+  renderBreakdown('source-breakdown', apps, 'source', total);
+  // Priority
+  renderBreakdown('priority-breakdown', apps, 'priority', total);
+}
+
+function renderBreakdown(elId, apps, field, total) {
+  const map = {};
+  apps.forEach(a => { if(a[field]) map[a[field]] = (map[a[field]]||0)+1; });
+  document.getElementById(elId).innerHTML = Object.entries(map).length
+    ? Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([k,c])=>`
+        <div class="insight-row">
+          <span class="insight-label">${esc(k)}</span>
+          <div style="flex:2"><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${total>0?c/total*100:0}%;background:var(--rose)"></div></div></div>
+          <span class="insight-val">${c}</span>
+        </div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px">No data yet.</div>';
+}
+
+// ── FIXED: Bar chart with correct value positioning ──
+function renderWeeklyChart() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const now  = new Date();
+  const counts = days.map((_,i) => {
+    const d = new Date(now);
+    const dow = now.getDay()||7;
+    d.setDate(now.getDate() - dow + 1 + i);
+    const ds = d.toISOString().split('T')[0];
+    return Object.values(allApps).filter(a=>a.date===ds).length;
+  });
+  const maxC = Math.max(...counts, 1);
+  const chartHeight = 68; // px available for bars
+
+  document.getElementById('weekly-chart').innerHTML = days.map((d,i) => {
+    const hasData = counts[i] > 0;
+    const barH = hasData ? Math.max(Math.round(counts[i]/maxC * chartHeight), 6) : 4;
+    const barBg = hasData
+      ? 'linear-gradient(to top,var(--burgundy),var(--blush))'
+      : 'var(--linen)';
+    return `
+    <div class="bar-col">
+      <div class="bar-val" style="visibility:${hasData?'visible':'hidden'}">${counts[i]}</div>
+      <div class="bar-fill" style="height:${barH}px;background:${barBg}"></div>
+      <div class="bar-label">${d}</div>
+    </div>`;
+  }).join('');
+}
+
+function parseSalary(s) {
+  // Match numbers optionally followed by k/K, e.g. "4k", "4,000", "4000", "4.5k"
+  const matches = [...s.matchAll(/(\d[\d,.]*)(\s*k)?/gi)];
+  const nums = matches.map(m => {
+    const n = parseFloat(m[1].replace(/,/g,''));
+    const isK = /k/i.test(m[2]||'') || (n < 1000 && /k/i.test(s));
+    return isK ? n * 1000 : n;
+  }).filter(n => !isNaN(n) && n > 0);
+  if (!nums.length) return null;
+  return { min:Math.min(...nums), max:Math.max(...nums) };
+}
+
+// ==============================
+// TABLE
+// ==============================
+function renderTable() {
+  const search    = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const fStatus   = document.getElementById('filter-status')?.value||'';
+  const fPriority = document.getElementById('filter-priority')?.value||'';
+  const fType     = document.getElementById('filter-type')?.value||'';
+  const fSource   = document.getElementById('filter-source')?.value||'';
+  const fSort     = document.getElementById('filter-sort')?.value||'newest';
+
+  let apps = Object.entries(allApps).map(([id,v])=>({id,...v}));
+  if (search)    apps = apps.filter(a=>(a.company||'').toLowerCase().includes(search)||(a.title||'').toLowerCase().includes(search));
+  if (fStatus)   apps = apps.filter(a=>a.status===fStatus);
+  if (fPriority) apps = apps.filter(a=>a.priority===fPriority);
+  if (fType)     apps = apps.filter(a=>a.type===fType);
+  if (fSource)   apps = apps.filter(a=>a.source===fSource);
+
+  if (fSort==='newest')  apps.sort((a,b)=>(b.appliedAt||0)-(a.appliedAt||0));
+  if (fSort==='oldest')  apps.sort((a,b)=>(a.appliedAt||0)-(b.appliedAt||0));
+  if (fSort==='company') apps.sort((a,b)=>(a.company||'').localeCompare(b.company||''));
+  if (fSort==='status')  apps.sort((a,b)=>(a.status||'').localeCompare(b.status||''));
+
+  const tbody = document.getElementById('table-body');
+  if (!tbody) return;
+
+  const countEl = document.getElementById('table-count');
+  if (countEl) countEl.textContent = `Showing ${apps.length} of ${Object.keys(allApps).length} applications`;
+
+  if (!apps.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No applications found</div><div class="empty-sub">Try adjusting filters or add your first application!</div></div></td></tr>`;
+    return;
+  }
+
+  const emoji = {Applied:'📤',Screening:'🔍',Interview:'🎙️','Technical Test':'🧪',Offer:'🎉',Negotiating:'🤝',Accepted:'✅',Rejected:'❌',Withdrawn:'↩️',Ghosted:'👻'};
+
+  tbody.innerHTML = apps.map(a => {
+    const isOverdue = a.followupDate && a.followupDate < TODAY && !['Rejected','Withdrawn','Accepted','Ghosted'].includes(a.status);
+    const diff = a.followupDate ? dateDiff(a.followupDate, TODAY) : null;
+    let followupHtml = '—';
+    if (a.followupDate) {
+      const cls = diff < 0 ? 'overdue' : diff === 0 ? 'today' : '';
+      const label = diff < 0 ? `${Math.abs(diff)}d overdue` : diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : a.followupDate;
+      followupHtml = `<span class="upcoming-date-badge ${cls}" style="font-size:10.5px">${label}</span>`;
+    }
+    return `<tr data-id="${a.id}" onclick="editApp('${a.id}')" ${isOverdue?'style="background:rgba(200,74,74,0.04)"':''}>
+      <td>
+        <div class="company-cell">
+          <div class="company-logo">${(a.company||'?')[0].toUpperCase()}</div>
+          <div>
+            <div class="co-name">${esc(a.company||'—')}</div>
+            <div class="co-role">${esc(a.title||'—')}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="status-badge status-${slugStatus(a.status)}">${emoji[a.status]||''} ${a.status||'Applied'}</span></td>
+      <td><span class="priority-dot p-${a.priority||'Medium'}"></span>${a.priority||'Medium'}</td>
+      <td style="color:var(--muted);font-size:12.5px">${esc(a.type||'—')}</td>
+      <td style="color:var(--muted);font-size:12.5px">${esc(a.location||'—')}</td>
+      <td style="font-size:12.5px;color:var(--burgundy);font-weight:500">${a.salary?'RM '+esc(a.salary):'—'}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${a.date||'—'}</td>
+      <td>${followupHtml}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="action-btns">
+          ${a.url?`<a href="${a.url}" target="_blank" class="icon-btn" title="Open link">🔗</a>`:''}
+          <div class="icon-btn edit" onclick="editApp('${a.id}')" title="Edit">✏️</div>
+          <div class="icon-btn del" onclick="deleteApp('${a.id}')" title="Delete">🗑</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ==============================
+// CALENDAR
+// ==============================
+function renderCalendar() {
+  const apps = Object.values(allApps);
+  const now  = new Date();
+  const year = calYear, month = calMonth;
+
+  document.getElementById('cal-month-label').textContent =
+    new Date(year,month,1).toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+
+  const applyMap = {}, followupMap = {}, interviewMap = {};
+  apps.forEach(a => {
+    if (a.date)        applyMap[a.date]     = (applyMap[a.date]||0)+1;
+    if (a.followupDate) followupMap[a.followupDate] = (followupMap[a.followupDate]||0)+1;
+    if (a.status === 'Interview' && a.followupDate) interviewMap[a.followupDate] = (interviewMap[a.followupDate]||0)+1;
+  });
+
+  const monthStr = `${year}-${String(month+1).padStart(2,'0')}`;
+  const monthApps = apps.filter(a=>(a.date||'').startsWith(monthStr));
+  const monthFollowups = apps.filter(a=>(a.followupDate||'').startsWith(monthStr));
+  const monthInterviews = apps.filter(a=>(a.followupDate||'').startsWith(monthStr) && a.status==='Interview');
+  document.getElementById('cal-month-total').textContent = monthApps.length;
+  document.getElementById('cal-month-active').textContent = new Set(monthApps.map(a=>a.date)).size;
+  document.getElementById('cal-month-followups').textContent = monthFollowups.length;
+  document.getElementById('cal-month-interviews').textContent = monthInterviews.length;
+
+  let streak = 0;
+  const cd = new Date(now);
+  while(true) {
+    const ds = cd.toISOString().split('T')[0];
+    if (applyMap[ds]) { streak++; cd.setDate(cd.getDate()-1); } else break;
+  }
+  document.getElementById('streak-num').textContent = streak;
+  document.getElementById('streak-note').textContent = streak > 0
+    ? `Keep it up! 🔥 ${streak} day${streak>1?'s':''} in a row.`
+    : 'Apply today to start a streak!';
+
+  renderUpcomingList();
+
+  const firstDay = new Date(year,month,1).getDay();
+  const daysInMonth = new Date(year,month+1,0).getDate();
+  const daysInPrev  = new Date(year,month,0).getDate();
+  const startOffset = (firstDay+6)%7;
+
+  const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = labels.map(l=>`<div class="cal-day-label">${l}</div>`).join('');
+
+  for (let i=startOffset-1;i>=0;i--) html += `<div class="cal-day other-month"><span>${daysInPrev-i}</span></div>`;
+
+  for (let d=1;d<=daysInMonth;d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const aC = applyMap[ds]||0;
+    const fC = followupMap[ds]||0;
+    const iC = interviewMap[ds]||0;
+    const isToday   = ds === TODAY;
+    const isSel     = calSelectedDate === ds;
+    const isOverdue = fC>0 && ds<TODAY;
+
+    let cls = 'cal-day';
+    if (isToday)   cls += ' today';
+    if (aC>0||fC>0) cls += ' has-apps';
+    if (isSel)      cls += ' selected';
+
+    const totalEvents = aC + fC;
+    let tooltipParts = [];
+    if (aC>0) tooltipParts.push(`${aC} applied`);
+    if (fC>0) tooltipParts.push(`${fC} follow-up${fC>1?'s':''}`);
+
+    let dots = '';
+    if (aC>0) dots += `<span class="edot edot-apply"></span>`;
+    if (iC>0) dots += `<span class="edot edot-interview"></span>`;
+    else if (fC>0) dots += `<span class="edot ${isOverdue?'edot-deadline':'edot-followup'}"></span>`;
+
+    html += `<div class="${cls}" onclick="selectCalDay('${ds}')" style="position:relative">
+      <span>${d}</span>
+      ${dots ? `<div class="event-dots">${dots}</div>` : ''}
+      ${totalEvents>0?`<div class="cal-tooltip">${tooltipParts.join(' · ')}</div>`:''}
+    </div>`;
+  }
+
+  const totalCells = Math.ceil((startOffset+daysInMonth)/7)*7;
+  for (let d=1;d<=totalCells-startOffset-daysInMonth;d++) html+=`<div class="cal-day other-month"><span>${d}</span></div>`;
+
+  document.getElementById('cal-grid').innerHTML = html;
+  if (calSelectedDate) showDayDetail(calSelectedDate);
+}
+
+function renderUpcomingList() {
+  const upcoming = getUpcomingFollowups(20);
+  const el = document.getElementById('upcoming-list');
+  if (!upcoming.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">No upcoming follow-ups 🎉</div>'; return; }
+
+  el.innerHTML = upcoming.map(a => {
+    const diff  = dateDiff(a.followupDate, TODAY);
+    const cls   = diff<0?'overdue':diff===0?'today':'';
+    const label = diff<0?`${Math.abs(diff)}d overdue`:diff===0?'Today':diff===1?'Tomorrow':`${diff}d`;
+    return `<div class="upcoming-item">
+      <span class="upcoming-date-badge ${cls}">${label}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:12.5px">${esc(a.company)}</div>
+        <div style="font-size:11.5px;color:var(--muted)">${esc(a.followupType||a.nextStep||'Follow-up')}</div>
+        <div style="font-size:11px;color:var(--muted)">${a.followupDate}</div>
+      </div>
+      <div class="icon-btn edit" onclick="editApp('${a.id}')" title="Edit" style="flex-shrink:0">✏️</div>
+    </div>`;
+  }).join('');
+}
+
+function getUpcomingFollowups(limit=10) {
+  return Object.entries(allApps)
+    .map(([id,a])=>({id,...a}))
+    .filter(a => a.followupDate && !['Withdrawn','Accepted'].includes(a.status))
+    .sort((a,b)=>a.followupDate.localeCompare(b.followupDate))
+    .slice(0,limit);
+}
+
+function selectCalDay(ds) {
+  calSelectedDate = calSelectedDate===ds ? null : ds;
+  renderCalendar();
+}
+
+function showDayDetail(ds) {
+  const apps = Object.values(allApps);
+  const applied   = apps.filter(a=>a.date===ds);
+  const followups = Object.entries(allApps).filter(([,a])=>a.followupDate===ds).map(([id,a])=>({id,...a}));
+  const detail = document.getElementById('day-detail');
+
+  if (!applied.length && !followups.length) { detail.style.display='none'; return; }
+  detail.style.display='';
+
+  const dateLabel = new Date(ds+'T00:00:00').toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('day-detail-header').textContent = dateLabel;
+
+  const emoji = {Applied:'📤',Screening:'🔍',Interview:'🎙️','Technical Test':'🧪',Offer:'🎉',Negotiating:'🤝',Accepted:'✅',Rejected:'❌',Withdrawn:'↩️',Ghosted:'👻'};
+
+  let html = '';
+  if (applied.length) {
+    html += `<div style="padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);background:rgba(74,134,200,.06)">📤 Applied (${applied.length})</div>`;
+    html += applied.map(a=>`
+      <div class="day-detail-item" onclick="editApp('${Object.keys(allApps).find(k=>allApps[k]===a)}')" style="cursor:pointer">
+        <span style="font-size:16px">${emoji[a.status]||'📋'}</span>
+        <div style="flex:1">
+          <div style="font-weight:600">${esc(a.company)}</div>
+          <div style="color:var(--muted);font-size:11.5px">${esc(a.title)} · <span class="status-badge status-${slugStatus(a.status)}" style="font-size:10px">${a.status}</span></div>
+        </div>
+      </div>`).join('');
+  }
+
+  if (followups.length) {
+    html += `<div style="padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);background:rgba(200,136,58,.06)">⏰ Follow-ups (${followups.length})</div>`;
+    html += followups.map(a=>`
+      <div class="day-detail-item" onclick="editApp('${a.id}')" style="cursor:pointer">
+        <span style="font-size:16px">⏰</span>
+        <div style="flex:1">
+          <div style="font-weight:600">${esc(a.company)}</div>
+          <div style="color:var(--muted);font-size:11.5px">${esc(a.followupType||a.nextStep||'Follow-up')}</div>
+          <div style="color:var(--muted);font-size:11px">${esc(a.title||'')}</div>
+        </div>
+        <div class="icon-btn edit" onclick="event.stopPropagation();editApp('${a.id}')">✏️</div>
+      </div>`).join('');
+  }
+
+  document.getElementById('day-detail-body').innerHTML = html;
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth>11) { calMonth=0; calYear++; }
+  if (calMonth<0)  { calMonth=11; calYear--; }
+  calSelectedDate = null;
+  renderCalendar();
+}
+
+function goToday() {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  calSelectedDate = TODAY;
+  renderCalendar();
+}
+
+// ==============================
+// NOTES VIEW
+// ==============================
+function renderNotes() {
+  const fApp  = document.getElementById('notes-filter-app')?.value||'';
+  const fType = document.getElementById('notes-filter-type')?.value||'';
+
+  const appSel = document.getElementById('notes-filter-app');
+  if (appSel) {
+    const cur = appSel.value;
+    appSel.innerHTML = '<option value="">All Applications</option>' +
+      Object.entries(allApps).sort((a,b)=>(a[1].company||'').localeCompare(b[1].company||'')).map(([id,a])=>`<option value="${id}">${esc(a.company)} — ${esc(a.title||'')}</option>`).join('');
+    appSel.value = cur;
+  }
+
+  let notes = Object.entries(allNotes).map(([id,n])=>({id,...n}));
+  if (fApp)  notes = notes.filter(n=>n.appId===fApp);
+  if (fType) notes = notes.filter(n=>n.type===fType);
+  notes.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  const typeIcon = {Note:'📝',Interview:'🎙️',Email:'📧',Call:'📞',Offer:'🎉',Rejection:'❌'};
+
+  const el = document.getElementById('notes-list');
+  if (!notes.length) {
+    el.innerHTML = `<div class="card"><div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:8px">📝</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--text2)">No notes yet</div><div style="font-size:13px;margin-top:4px">Add notes to track your interactions</div></div></div>`;
+    return;
+  }
+
+  const grouped = {};
+  notes.forEach(n => { (grouped[n.date||'Unknown']||=(grouped[n.date||'Unknown']=[]) ).push(n); });
+
+  el.innerHTML = Object.entries(grouped).map(([date,ns])=>`
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">${date}</div>
+      ${ns.map(n=>{
+        const app = allApps[n.appId]||{};
+        return `<div class="card" style="margin-bottom:10px;padding:16px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="font-size:20px;flex-shrink:0">${typeIcon[n.type]||'📝'}</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="font-weight:600;font-size:13.5px">${esc(app.company||'Unknown')}</span>
+                <span style="font-size:11px;color:var(--muted)">${esc(app.title||'')}</span>
+                <span style="margin-left:auto;font-size:11px;color:var(--muted)">${n.type||'Note'}</span>
+              </div>
+              <div style="font-size:13px;color:var(--text2);line-height:1.5">${esc(n.content||'')}</div>
+            </div>
+            <div class="icon-btn del" onclick="deleteNote('${n.id}')" title="Delete">🗑</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  const summary = document.getElementById('notes-summary');
+  const typeCount = {};
+  Object.values(allNotes).forEach(n=>{ typeCount[n.type||'Note']=(typeCount[n.type||'Note']||0)+1; });
+  summary.innerHTML = Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`
+    <div class="insight-row"><span class="insight-label">${typeIcon[t]||'📝'} ${t}</span><span class="insight-val">${c}</span></div>`).join('') || '<div style="color:var(--muted);font-size:13px">No notes yet.</div>';
+}
+
+function openAddNoteModal() {
+  const sel = document.getElementById('note-app-id');
+  sel.innerHTML = Object.entries(allApps).sort((a,b)=>(a[1].company||'').localeCompare(b[1].company||'')).map(([id,a])=>`<option value="${id}">${esc(a.company)} — ${esc(a.title||'')}</option>`).join('');
+  document.getElementById('note-date').value = TODAY;
+  document.getElementById('note-content').value = '';
+  document.getElementById('note-modal-overlay').classList.add('open');
+}
+
+function closeNoteModal() {
+  document.getElementById('note-modal-overlay').classList.remove('open');
+}
+
+async function saveNote() {
+  if (!notesRef) return;
+  const appId   = document.getElementById('note-app-id').value;
+  const type    = document.getElementById('note-type').value;
+  const date    = document.getElementById('note-date').value;
+  const content = document.getElementById('note-content').value.trim();
+  if (!content) { alert('Please enter note content.'); return; }
+  try {
+    await notesRef.push({ appId, type, date, content, createdAt:Date.now() });
+    closeNoteModal();
+    toast('📝 Note saved!', '📝');
+  } catch(e) {
+    toast('❌ Save failed: ' + e.message, '❌');
+  }
+}
+
+async function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  try {
+    await notesRef.child(id).remove();
+    toast('🗑 Note deleted.', '🗑');
+  } catch(e) {
+    toast('❌ Error: ' + e.message, '❌');
+  }
+}
+
+// ==============================
+// MODAL (App)
+// ==============================
+function openModal(id=null) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = id ? 'Edit Application' : 'Add Application';
+  if (id && allApps[id]) {
+    const a = allApps[id];
+    setF('f-company',a.company); setF('f-title',a.title);
+    setF('f-industry',a.industry); setF('f-type',a.type||'Full-time');
+    setF('f-status',a.status||'Applied'); setF('f-priority',a.priority||'Medium');
+    setF('f-location',a.location); setF('f-date',a.date);
+    setF('f-salary',a.salary); setF('f-source',a.source||'');
+    setF('f-url',a.url); setF('f-next',a.nextStep);
+    setF('f-followup-date',a.followupDate||'');
+    setF('f-followup-type',a.followupType||'');
+    setF('f-notes',a.notes);
+    // NEW fields
+    setF('f-experience',a.experience||'');
+    setF('f-requirements',a.requirements||'');
+    setF('f-responsibilities',a.responsibilities||'');
+  } else {
+    ['f-company','f-title','f-industry','f-location','f-salary','f-url','f-next','f-notes',
+     'f-followup-date','f-experience','f-requirements','f-responsibilities'].forEach(i=>{
+       const el=document.getElementById(i); if(el)el.value='';
+    });
+    setF('f-status','Applied'); setF('f-priority','Medium'); setF('f-type','Full-time');
+    setF('f-source',''); setF('f-followup-type','');
+    setF('f-date',TODAY);
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-company').focus(),200);
+}
+
+function editApp(id) { openModal(id); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId=null; }
+function handleOverlayClick(e) { if(e.target===document.getElementById('modal-overlay'))closeModal(); }
+
+function onStatusChange() {
+  const status = document.getElementById('f-status').value;
+  const followupTypeEl = document.getElementById('f-followup-type');
+  if (status==='Interview' && !followupTypeEl.value) followupTypeEl.value = 'Interview';
+  if (status==='Technical Test' && !followupTypeEl.value) followupTypeEl.value = 'Technical Test';
+}
+
+async function saveApp() {
+  if (!currentUser) { toast('❌ Not signed in.','❌'); return; }
+  if (!appsRef) appsRef = db.ref(`users/${currentUser.uid}/applications`);
+
+  const company = document.getElementById('f-company').value.trim();
+  if (!company) { alert('Company name is required!'); return; }
+
+  const data = {
+    company, title:gF('f-title'), industry:gF('f-industry'), type:gF('f-type'),
+    status:gF('f-status'), priority:gF('f-priority'),
+    location:gF('f-location'), date:gF('f-date'),
+    salary:gF('f-salary'), source:gF('f-source'),
+    url:gF('f-url'), nextStep:gF('f-next'),
+    followupDate:gF('f-followup-date'),
+    followupType:gF('f-followup-type'),
+    notes:gF('f-notes'),
+    // NEW fields
+    experience:gF('f-experience'),
+    requirements:gF('f-requirements'),
+    responsibilities:gF('f-responsibilities'),
+    updatedAt:Date.now()
+  };
+
+  if (!editingId) data.appliedAt = Date.now();
+
+  try {
+    const ref = editingId ? appsRef.child(editingId) : appsRef.push();
+    await ref.set(editingId ? {...allApps[editingId],...data} : data);
+    closeModal();
+    toast(editingId?'✏️ Updated!':'✅ Application added!','✅');
+  } catch(e) {
+    console.error(e);
+    toast('❌ Save failed: '+(e.message||'Permission denied'),'❌');
+  }
+}
+
+async function deleteApp(id) {
+  if (!appsRef) return;
+  if (!confirm(`Delete application for "${allApps[id]?.company}"?`)) return;
+  try {
+    await appsRef.child(id).remove();
+    if (notesRef) {
+      const noteEntries = Object.entries(allNotes).filter(([,n])=>n.appId===id);
+      for (const [nid] of noteEntries) await notesRef.child(nid).remove();
+    }
+    toast('🗑 Deleted.','🗑');
+  } catch(e) {
+    toast('❌ Delete failed: '+e.message,'❌');
+  }
+}
+
+// ==============================
+// FILTERS
+// ==============================
+function filterStatus(s) {
+  showView('applications');
+  document.getElementById('filter-status').value = s;
+  renderTable();
+}
+
+function clearFilter() {
+  ['filter-status','filter-priority','filter-type','filter-source','search-input'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.value='';
+  });
+  renderTable();
+}
+
+// ==============================
+// GLOBAL SEARCH
+// ==============================
+function onGlobalSearch() { renderSearchDropdown(document.getElementById('global-search').value.trim()); }
+function onGlobalSearchFocus() { renderSearchDropdown(document.getElementById('global-search').value.trim()); }
+
+function renderSearchDropdown(q) {
+  const dd = document.getElementById('search-dropdown');
+  const apps = Object.entries(allApps).map(([id,v])=>({id,...v}));
+  let results = !q ? [...apps].sort((a,b)=>(b.appliedAt||0)-(a.appliedAt||0))
+    : apps.filter(a=>(a.company||'').toLowerCase().includes(q.toLowerCase())||(a.title||'').toLowerCase().includes(q.toLowerCase())||(a.status||'').toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(b.appliedAt||0)-(a.appliedAt||0));
+
+  const sEmoji = {Applied:'📤',Screening:'🔍',Interview:'🎙️','Technical Test':'🧪',Offer:'🎉',Negotiating:'🤝',Accepted:'✅',Rejected:'❌',Withdrawn:'↩️',Ghosted:'👻'};
+  const header = q ? `${results.length} result${results.length!==1?'s':''} for "${esc(q)}"` : `All ${results.length} Application${results.length!==1?'s':''}`;
+
+  if (!results.length) {
+    dd.innerHTML = `<div class="sd-header">${header}</div><div class="sd-empty"><div class="sd-empty-icon">📭</div>${q?`No results for "<strong>${esc(q)}</strong>"`:'No applications yet.'}</div>`;
+  } else {
+    dd.innerHTML = `<div class="sd-header">${header}</div>`
+      + results.slice(0,20).map(a=>`
+        <div class="sd-item" onclick="openFromSearch('${a.id}')">
+          <div class="sd-logo">${(a.company||'?')[0].toUpperCase()}</div>
+          <div class="sd-info">
+            <div class="sd-company">${q?highlight(a.company||'—',q):esc(a.company||'—')}</div>
+            <div class="sd-role">${q?highlight(a.title||'—',q):esc(a.title||'—')}${a.location?' · 📍 '+esc(a.location):''}</div>
+          </div>
+          <div class="sd-right">
+            <span class="status-badge status-${slugStatus(a.status)}" style="font-size:10.5px">${sEmoji[a.status]||''} ${a.status||'Applied'}</span>
+            <div class="sd-date">${a.date||''}</div>
+          </div>
+        </div>`).join('')
+      + (results.length>20?`<div class="sd-header" style="text-align:center">+${results.length-20} more</div>`:'');
+  }
+  dd.classList.add('open');
+}
+
+function highlight(text,q) {
+  const e=esc(text), eq=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return e.replace(new RegExp(eq,'gi'),m=>`<span class="hl">${m}</span>`);
+}
+
+function openFromSearch(id) {
+  closeSearchDropdown();
+  document.getElementById('global-search').value='';
+  editApp(id);
+}
+
+function closeSearchDropdown() { document.getElementById('search-dropdown').classList.remove('open'); }
+document.addEventListener('click', e => { if(!document.getElementById('global-search-wrap').contains(e.target)) closeSearchDropdown(); });
+
+// ==============================
+// EXPORT
+// ==============================
+function exportCSV() {
+  const apps = Object.values(allApps);
+  if (!apps.length) { toast('No data to export.','ℹ️'); return; }
+  const headers = ['Company','Title','Status','Priority','Type','Location','Date Applied','Follow-up Date','Follow-up Type','Salary','Source','Experience','URL','Next Step','Requirements','Responsibilities','Notes'];
+  const rows = apps.map(a=>[
+    a.company,a.title,a.status,a.priority,a.type,a.location,a.date,
+    a.followupDate,a.followupType,a.salary,a.source,a.experience,
+    a.url,a.nextStep,a.requirements,a.responsibilities,a.notes
+  ].map(v=>`"${(v||'').replace(/"/g,'""')}"`));
+  const csv = [headers,...rows].map(r=>r.join(',')).join('\n');
+  const el = document.createElement('a');
+  el.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  el.download = `job-applications-${TODAY}.csv`;
+  el.click();
+  toast('📥 CSV exported!','📥');
+}
+
+// ==============================
+// HELPERS
+// ==============================
+function doLogout() { auth.signOut().then(()=>window.location.href='index.html'); }
+function gF(id) { return document.getElementById(id)?.value.trim()||''; }
+function setF(id,v) { const el=document.getElementById(id); if(el) el.value=v||''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function slugStatus(s) { return (s||'Applied').replace(/\s+/g,'-'); }
+
+function dateDiff(target, base) {
+  const t = new Date(target+'T00:00:00'), b = new Date(base+'T00:00:00');
+  return Math.round((t-b)/86400000);
+}
+
+let toastTimer;
+function toast(msg,icon='✅') {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast-icon').textContent=icon;
+  t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+document.addEventListener('keydown', e=>{
+  const inInput=['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName);
+  if (e.key==='n'&&!inInput&&!document.getElementById('modal-overlay').classList.contains('open')) openModal();
+  if (e.key==='Escape') { closeModal(); closeNoteModal(); closeSearchDropdown(); }
+});
+</script>
+</body>
+</html>
