@@ -45,25 +45,158 @@
     .kbd { display:inline-block; background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:11px; color:var(--muted); }
 
     /* ── Global search ── */
-    .global-search-wrap { position:relative; flex:1; max-width:420px; }
-    .global-search-input { width:100%; padding:9px 16px 9px 38px; background:var(--surface); border:1.5px solid var(--border2); border-radius:30px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--text); outline:none; box-shadow:var(--shadow-sm); transition:border-color .2s,box-shadow .2s; }
-    .global-search-input:focus { border-color:var(--rose); box-shadow:0 0 0 3px rgba(180,68,70,.10); }
-    .global-search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
-    .search-dropdown { position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); z-index:100; overflow:hidden; max-height:400px; overflow-y:auto; display:none; }
-    .search-dropdown.open { display:block; animation:fadeSlide .15s ease; }
-    .sd-header { padding:8px 14px 6px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); border-bottom:1px solid var(--border); background:var(--bg2); }
-    .sd-item { display:flex; align-items:center; gap:12px; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
-    .sd-item:last-child { border-bottom:none; }
-    .sd-item:hover { background:var(--bg2); }
-    .sd-logo { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--linen),var(--bg2)); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--burgundy); flex-shrink:0; }
-    .sd-info { flex:1; min-width:0; }
-    .sd-company { font-size:13px; font-weight:600; color:var(--text); }
-    .sd-role { font-size:11.5px; color:var(--muted); margin-top:1px; }
-    .sd-right { text-align:right; flex-shrink:0; }
-    .sd-date { font-size:11px; color:var(--muted); }
-    .sd-empty { padding:24px 14px; text-align:center; color:var(--muted); font-size:13px; }
-    .sd-empty-icon { font-size:28px; margin-bottom:6px; opacity:.5; }
-    .hl { background:rgba(180,68,70,.12); color:var(--rose); border-radius:2px; font-weight:700; }
+    .global-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+    }
+    .global-search-input {
+      width: 100%;
+      padding: 9px 16px 9px 38px;
+      background: var(--surface);
+      border: 1.5px solid var(--border2);
+      border-radius: 30px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .global-search-input:focus {
+      border-color: var(--rose);
+      box-shadow: 0 0 0 3px rgba(180,68,70,.10);
+    }
+    .global-search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* ── Search dropdown — FIXED ── */
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      overflow: hidden;
+      max-height: 420px;
+      overflow-y: auto;
+      display: none;
+    }
+    .search-dropdown.open {
+      display: block;
+      animation: fadeSlide .15s ease;
+    }
+    .sd-header {
+      padding: 8px 14px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    /* Each row — strict single-line flex, no wrap */
+    .sd-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+      overflow: hidden;
+    }
+    .sd-item:last-child { border-bottom: none; }
+    .sd-item:hover { background: var(--bg2); }
+
+    /* Logo — fixed size, never shrink */
+    .sd-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--linen), var(--bg2));
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--burgundy);
+      flex-shrink: 0;
+    }
+    /* Info — flex fill, clips overflow */
+    .sd-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .sd-company {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.35;
+    }
+    .sd-role {
+      font-size: 11.5px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+    /* Right — badge + date, fixed, never shrink */
+    .sd-right {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .sd-right .status-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+    .sd-date {
+      font-size: 10.5px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .sd-empty {
+      padding: 28px 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .sd-empty-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+      opacity: .5;
+      display: block;
+    }
+    .hl {
+      background: rgba(180,68,70,.12);
+      color: var(--rose);
+      border-radius: 2px;
+      font-weight: 700;
+    }
 
     /* ── Calendar event types ── */
     .cal-day .event-dots { display:flex; gap:2px; justify-content:center; margin-top:2px; flex-wrap:wrap; }
@@ -529,7 +662,6 @@
         <input type="url" id="f-url" placeholder="https://…">
       </div>
 
-      <!-- ── NEW: Role Details ── -->
       <div class="form-divider">Role Details</div>
       <div class="form-row">
         <div class="form-group">
@@ -550,18 +682,18 @@
       </div>
       <div class="form-group">
         <label>📋 Job Requirements</label>
-        <textarea id="f-requirements" placeholder="e.g. Bachelor's in CS, proficient in React, 3 years experience, strong communication skills…" rows="3"></textarea>
+        <textarea id="f-requirements" placeholder="e.g. Bachelor's in CS, proficient in React, 3 years experience…" rows="3"></textarea>
       </div>
       <div class="form-group">
         <label>🎯 Job Responsibilities</label>
-        <textarea id="f-responsibilities" placeholder="e.g. Build and maintain frontend features, collaborate with design team, participate in code reviews…" rows="3"></textarea>
+        <textarea id="f-responsibilities" placeholder="e.g. Build and maintain frontend features, collaborate with design team…" rows="3"></textarea>
       </div>
 
       <div class="form-divider">Follow-up & Reminders</div>
       <div class="form-row">
         <div class="form-group">
           <label>📅 Follow-up Date</label>
-          <input type="date" id="f-followup-date" title="Pick a date — this will appear on your calendar">
+          <input type="date" id="f-followup-date">
         </div>
         <div class="form-group">
           <label>Follow-up Type</label>
@@ -580,13 +712,13 @@
       </div>
       <div class="form-group">
         <label>Follow-up Notes / Next Action</label>
-        <input type="text" id="f-next" placeholder="e.g. Email HR about interview schedule, Check job portal">
+        <input type="text" id="f-next" placeholder="e.g. Email HR about interview schedule">
       </div>
 
       <div class="form-divider">Additional Notes</div>
       <div class="form-group">
         <label>Notes</label>
-        <textarea id="f-notes" placeholder="Recruiter name, referral contact, interview feedback, cover letter details…" rows="3"></textarea>
+        <textarea id="f-notes" placeholder="Recruiter name, referral contact, interview feedback…" rows="3"></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -654,26 +786,16 @@
 </script>
 
 <script>
-// ==============================
-// FIREBASE
-// ==============================
-// firebaseConfig hardcoded above
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.database();
 
-// ==============================
-// STATE
-// ==============================
 let currentUser = null, appsRef = null, notesRef = null;
 let allApps = {}, allNotes = {};
 let editingId = null;
 let calYear, calMonth, calSelectedDate = null;
 const TODAY = new Date().toISOString().split('T')[0];
 
-// ==============================
-// AUTH INIT
-// ==============================
 auth.onAuthStateChanged(async user => {
   if (!user) { window.location.href = 'index.html'; return; }
   currentUser = user;
@@ -708,9 +830,6 @@ auth.onAuthStateChanged(async user => {
   calYear = now.getFullYear(); calMonth = now.getMonth();
 });
 
-// ==============================
-// VIEWS
-// ==============================
 const views = ['dashboard','applications','calendar','notes'];
 function showView(v) {
   views.forEach(name => {
@@ -732,9 +851,6 @@ function refreshAll() {
   if (document.getElementById('view-calendar').style.display !== 'none') renderCalendar();
 }
 
-// ==============================
-// OVERDUE BADGE
-// ==============================
 function updateOverdueBadge() {
   const overdue = Object.values(allApps).filter(a =>
     a.followupDate && a.followupDate < TODAY &&
@@ -747,9 +863,6 @@ function updateOverdueBadge() {
   if (el) el.textContent = overdue;
 }
 
-// ==============================
-// DASHBOARD
-// ==============================
 function renderDashboard() {
   const apps = Object.values(allApps);
   const total = apps.length;
@@ -770,7 +883,6 @@ function renderDashboard() {
   document.getElementById('rate-response').textContent = total > 0 ? `${Math.round(responded/total*100)}%` : '—';
   document.getElementById('rate-interview').textContent = total > 0 ? `${Math.round(byStatus('Interview')/total*100)}%` : '—';
 
-  // Funnel
   const funnelData = [
     { label:'Applied',        color:'var(--s-applied)',   count:byStatus('Applied') },
     { label:'Screening',      color:'var(--s-screening)', count:byStatus('Screening') },
@@ -796,7 +908,6 @@ function renderDashboard() {
 
   renderWeeklyChart();
 
-  // Salary
   const salaries = apps.map(a => a.salary ? parseSalary(a.salary) : null).filter(Boolean);
   if (salaries.length) {
     const mn = Math.min(...salaries.map(s=>s.min));
@@ -805,7 +916,6 @@ function renderDashboard() {
     document.getElementById('salary-note').textContent = `Based on ${salaries.length} application${salaries.length>1?'s':''} with salary info`;
   }
 
-  // Upcoming follow-ups (dashboard)
   const upcoming = getUpcomingFollowups(5);
   const dashUp = document.getElementById('dash-upcoming');
   dashUp.innerHTML = upcoming.length ? upcoming.map(a => {
@@ -823,7 +933,6 @@ function renderDashboard() {
     </div>`;
   }).join('') : '<div style="color:var(--muted);font-size:13px">No upcoming follow-ups 🎉</div>';
 
-  // Recent
   const sorted = [...apps].sort((a,b)=>(b.appliedAt||0)-(a.appliedAt||0)).slice(0,5);
   document.getElementById('recent-list').innerHTML = sorted.length ? sorted.map(a => `
     <div class="recent-item">
@@ -835,18 +944,14 @@ function renderDashboard() {
       <span class="status-badge status-${slugStatus(a.status)}" style="font-size:11px">${a.status||'Applied'}</span>
     </div>`).join('') : '<div style="color:var(--muted);font-size:13px">No applications yet.</div>';
 
-  // Types
   renderBreakdown('type-breakdown', apps, 'type', total);
-  // Locations
   const locs = {}; apps.forEach(a => { if(a.location) locs[a.location]=(locs[a.location]||0)+1; });
   document.getElementById('location-breakdown').innerHTML = Object.entries(locs).length
     ? Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,c])=>`
         <div class="insight-row"><span class="insight-label">📍 ${esc(l)}</span><span class="insight-val">${c}</span></div>`).join('')
     : '<div style="color:var(--muted);font-size:13px">No data yet.</div>';
 
-  // Sources
   renderBreakdown('source-breakdown', apps, 'source', total);
-  // Priority
   renderBreakdown('priority-breakdown', apps, 'priority', total);
 }
 
@@ -863,7 +968,6 @@ function renderBreakdown(elId, apps, field, total) {
     : '<div style="color:var(--muted);font-size:13px">No data yet.</div>';
 }
 
-// ── FIXED: Bar chart with correct value positioning ──
 function renderWeeklyChart() {
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const now  = new Date();
@@ -875,7 +979,7 @@ function renderWeeklyChart() {
     return Object.values(allApps).filter(a=>a.date===ds).length;
   });
   const maxC = Math.max(...counts, 1);
-  const chartHeight = 68; // px available for bars
+  const chartHeight = 68;
 
   document.getElementById('weekly-chart').innerHTML = days.map((d,i) => {
     const hasData = counts[i] > 0;
@@ -893,7 +997,6 @@ function renderWeeklyChart() {
 }
 
 function parseSalary(s) {
-  // Match numbers optionally followed by k/K, e.g. "4k", "4,000", "4000", "4.5k"
   const matches = [...s.matchAll(/(\d[\d,.]*)(\s*k)?/gi)];
   const nums = matches.map(m => {
     const n = parseFloat(m[1].replace(/,/g,''));
@@ -904,9 +1007,6 @@ function parseSalary(s) {
   return { min:Math.min(...nums), max:Math.max(...nums) };
 }
 
-// ==============================
-// TABLE
-// ==============================
 function renderTable() {
   const search    = (document.getElementById('search-input')?.value||'').toLowerCase();
   const fStatus   = document.getElementById('filter-status')?.value||'';
@@ -977,9 +1077,6 @@ function renderTable() {
   }).join('');
 }
 
-// ==============================
-// CALENDAR
-// ==============================
 function renderCalendar() {
   const apps = Object.values(allApps);
   const now  = new Date();
@@ -1158,9 +1255,6 @@ function goToday() {
   renderCalendar();
 }
 
-// ==============================
-// NOTES VIEW
-// ==============================
 function renderNotes() {
   const fApp  = document.getElementById('notes-filter-app')?.value||'';
   const fType = document.getElementById('notes-filter-type')?.value||'';
@@ -1256,9 +1350,6 @@ async function deleteNote(id) {
   }
 }
 
-// ==============================
-// MODAL (App)
-// ==============================
 function openModal(id=null) {
   editingId = id;
   document.getElementById('modal-title').textContent = id ? 'Edit Application' : 'Add Application';
@@ -1273,7 +1364,6 @@ function openModal(id=null) {
     setF('f-followup-date',a.followupDate||'');
     setF('f-followup-type',a.followupType||'');
     setF('f-notes',a.notes);
-    // NEW fields
     setF('f-experience',a.experience||'');
     setF('f-requirements',a.requirements||'');
     setF('f-responsibilities',a.responsibilities||'');
@@ -1317,7 +1407,6 @@ async function saveApp() {
     followupDate:gF('f-followup-date'),
     followupType:gF('f-followup-type'),
     notes:gF('f-notes'),
-    // NEW fields
     experience:gF('f-experience'),
     requirements:gF('f-requirements'),
     responsibilities:gF('f-responsibilities'),
@@ -1352,9 +1441,6 @@ async function deleteApp(id) {
   }
 }
 
-// ==============================
-// FILTERS
-// ==============================
 function filterStatus(s) {
   showView('applications');
   document.getElementById('filter-status').value = s;
@@ -1369,9 +1455,6 @@ function clearFilter() {
   renderTable();
 }
 
-// ==============================
-// GLOBAL SEARCH
-// ==============================
 function onGlobalSearch() { renderSearchDropdown(document.getElementById('global-search').value.trim()); }
 function onGlobalSearchFocus() { renderSearchDropdown(document.getElementById('global-search').value.trim()); }
 
@@ -1396,7 +1479,7 @@ function renderSearchDropdown(q) {
             <div class="sd-role">${q?highlight(a.title||'—',q):esc(a.title||'—')}${a.location?' · 📍 '+esc(a.location):''}</div>
           </div>
           <div class="sd-right">
-            <span class="status-badge status-${slugStatus(a.status)}" style="font-size:10.5px">${sEmoji[a.status]||''} ${a.status||'Applied'}</span>
+            <span class="status-badge status-${slugStatus(a.status)}">${sEmoji[a.status]||''} ${a.status||'Applied'}</span>
             <div class="sd-date">${a.date||''}</div>
           </div>
         </div>`).join('')
@@ -1419,9 +1502,6 @@ function openFromSearch(id) {
 function closeSearchDropdown() { document.getElementById('search-dropdown').classList.remove('open'); }
 document.addEventListener('click', e => { if(!document.getElementById('global-search-wrap').contains(e.target)) closeSearchDropdown(); });
 
-// ==============================
-// EXPORT
-// ==============================
 function exportCSV() {
   const apps = Object.values(allApps);
   if (!apps.length) { toast('No data to export.','ℹ️'); return; }
@@ -1439,9 +1519,6 @@ function exportCSV() {
   toast('📥 CSV exported!','📥');
 }
 
-// ==============================
-// HELPERS
-// ==============================
 function doLogout() { auth.signOut().then(()=>window.location.href='index.html'); }
 function gF(id) { return document.getElementById(id)?.value.trim()||''; }
 function setF(id,v) { const el=document.getElementById(id); if(el) el.value=v||''; }
